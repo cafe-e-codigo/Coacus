@@ -142,6 +142,32 @@ installed harness, or `all --verify-after-install` to install detected harnesses
 and verify them while skipping undetected ones. Reapply the recorded filters and
 Codex skill profile when refreshing a customized installation.
 
+**Browser policy (opt-in).** The installer can detect the web browsers present on
+the machine (the catalogue is `methodology/lifecycle/browsers.json`: binaries on
+`PATH`, well-known install paths and Flatpak ids), let you choose which one agents
+may drive (a primary and an optional fallback) and generate a deny policy for every
+other known browser: launching it, and reading or writing its profile directory.
+It is machine-local data written to the user policy directory
+(`$COACUS_POLICY_DIR`, else `$XDG_CONFIG_HOME/coacus/policies`, else
+`~/.config/coacus/policies`) and loaded by the runtime guard next to the
+repository policies; nothing is committed to the repository.
+
+- On an interactive terminal the installer prompts (default primary = the
+  catalogue's preferred detected browser, default fallback = none, `skip` to leave
+  the policy off). Without a terminal it stays **off** (D2: no behaviour change
+  without opt-in).
+- `--browser-policy auto` picks the preferred detected browser with no fallback;
+  `--browser-policy prompt|off` force the mode; `--browser-primary <id>` and
+  `--browser-fallback <id>` select explicitly (an id that is not installed stops the
+  run before anything is written, exit code 2).
+- `--browser-policy-dir <dir>` overrides the destination; a custom `--config-dir`
+  keeps the policy beside it (`<config-dir>/coacus-policies`).
+- `--dry-run` reports the selection and the policy count without writing;
+  `--verify` reports the recorded selection under `browser_policy`; only
+  `all --uninstall` removes the generated file (it is machine-wide).
+- A harness that cannot block `tool.pre` refuses the install like any other
+  `deny` policy (`--allow-advisory` records the downgrade).
+
 Skill sources installed everywhere are `methodology/workflows/**` and
 `knowledge/skills/**`, flattened into one namespace. Each skill installs as
 `<skill>/SKILL.md` plus its companions (`references/`, `examples/`, `scripts/`).
@@ -241,7 +267,7 @@ partial install (`--only`/`--skills`).
 - `skills.paths` exists in the official config schema and the plugin's `config`
   hook can set it, but Coacus does not: doing so re-registers the whole repo and
   defeated the partial install (measured: `--only languages` still exposed all
-  446 repo skills). **[verified locally]**
+  445 repo skills). **[verified locally]**
 - `experimental.chat.messages.transform` is the injection point; the Coacus
   plugin loads and injects the bootstrap. **[verified locally]**
 
