@@ -1,6 +1,6 @@
 ---
 name: "ui-design-craftsmanship"
-description: "Mastery in professional UI/UX craftsmanship, purposeful design direction, heuristic critique, and eliminating generic AI design anti-patterns."
+description: "Use when designing or refining a user interface and you need design direction, heuristic critique, or a review of visual, responsive, and interaction quality."
 ---
 
 # UI Design Craftsmanship
@@ -68,6 +68,10 @@ Before completing any frontend delivery, run these 5 deterministic mental audits
    - Are all interactive touch targets at least 44x44px? Is critical action density calibrated to prevent accidental clicks?
 5. **The Motion Budget Test (Accessibility & Restraint)**:
    - Does every CSS transition or animation complete in under 200ms? Are cartoonish bounce curves eliminated? Is `@media (prefers-reduced-motion)` strictly implemented?
+
+## 🧪 Rendered Interface Verification
+
+When a UI has multiple themes, responsive layouts, scroll reveals, or dialogs with explicit choices, verify the rendered behavior against the actual DOM. Use [rendered-interface verification](references/rendered-interface-verification.md) for the checks and release evidence.
 
 ---
 
