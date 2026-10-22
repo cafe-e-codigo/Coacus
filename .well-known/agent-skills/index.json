@@ -2393,7 +2393,7 @@
       "description": "Use when executing implementation plans with independent tasks in the current session",
       "type": "archive",
       "url": "methodology/workflows/superpowers-subagent-driven-development/SKILL.md",
-      "digest": "sha256:7326c5626a5940535204b43b77116c427dffc800e0d1bf07ff6a9e638296ae7e"
+      "digest": "sha256:0a83a7ba27d6e24652a0bd150a1c33d508ec5bb9b72c87239a55964d26415513"
     },
     {
       "name": "superpowers-systematic-debugging",
