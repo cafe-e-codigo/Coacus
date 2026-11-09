@@ -17,11 +17,21 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      runner:
+        description: "Runner to use (e.g. ubuntu-latest, self-hosted)"
+        required: false
+        default: ""
   schedule:
     - cron: '32 12 * * 0'
 
 permissions:
   contents: read
+
+concurrency:
+  group: bandit-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   bandit:
@@ -30,31 +40,19 @@ jobs:
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
       actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
 
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runner || vars.CI_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Bandit Scan
-        uses: shundor/python-bandit-scan@9955228c1cbdc5aeb5e511e0fa232154e2ed2b67 # ISC
-        with: # optional arguments
-          # Advisory scan: findings do not fail the job.
-          exit_zero: true # optional, default is DEFAULT
-          # Github token of the repository (automatically created by Github)
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information.
-          # File or directory to run bandit on
-          # path: # optional, default is .
-          # Report only issues of a given severity level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
-          # level: # optional, default is UNDEFINED
-          # Report only issues of a given confidence level or higher. Can be LOW, MEDIUM or HIGH. Default is UNDEFINED (everything)
-          # confidence: # optional, default is UNDEFINED
-          # Skip generic subprocess hints (B404/B603/B607) for repository-owned,
-          # shell=False call sites; the actionable B108 finding is fixed in code.
-          skips: B404,B603,B607
-          # comma-separated list of paths (glob patterns supported) to exclude from scan (note that these are in addition to the excluded paths provided in the config file) (default: .svn,CVS,.bzr,.hg,.git,__pycache__,.tox,.eggs,*.egg)
-          # excluded_paths: # optional, default is DEFAULT
-          # comma-separated list of test IDs to skip
-          # skips: # optional, default is DEFAULT
-          # path to a .bandit file that supplies command line arguments
-          # ini_path: # optional, default is DEFAULT
+      - name: Run Bandit
+        run: |
+          if ! python3 -c "import bandit_sarif_formatter" >/dev/null 2>&1; then
+            pip install --break-system-packages bandit bandit-sarif-formatter
+          fi
+          bandit -f sarif -o results.sarif -r . --exit-zero -s B404,B603,B607
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
